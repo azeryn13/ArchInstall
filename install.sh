@@ -50,7 +50,7 @@ EOF
 # Format the partitions
 mkfs.ext4 /dev/sda2
 mkfs.fat -F32 /dev/sda1
-
+read -p "Press any key to resume ..."
 # Set up time
 timedatectl set-ntp true
 
@@ -63,7 +63,7 @@ pacman-key --refresh-keys
 mount /dev/sda2 /mnt
 mkdir -pv /mnt/boot/efi
 mount /dev/sda1 /mnt/boot/efi
-
+read -p "Press any key to resume ..."
 # Install Arch Linux
 echo "Starting install.."
 echo "Installing Arch Linux, KDE with Konsole and Dolphin and GRUB2 as bootloader" 
