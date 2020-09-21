@@ -12,14 +12,11 @@ then
     exit
 fi
 
-#iwctl
-#station wlan0 connect Grasshopper
-#tomval2015
+echo "Updating the system clock"
+timedatectl set-ntp true
 
 # Filesystem mount warning
-echo "This script will create and format the partitions as follows:"
-echo "/dev/sda1 - 512Mib will be mounted as /boot/efi"
-echo "/dev/sda2 - rest of space will be mounted as /"
+echo "Delete all partitions, create, and format the partitions"
 read -p 'Continue? [y/N]: ' fsok
 if ! [ $fsok = 'y' ] && ! [ $fsok = 'Y' ]
 then 
@@ -28,7 +25,15 @@ then
 fi
 
 # create the partitions 
-sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk ${TGTDEV}
+sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk -1
+  d #
+    #
+  d #
+    #
+  d #
+    #
+  d #
+    #
   o # clear the in memory partition table
   n # new partition
   p # primary partition
@@ -37,7 +42,7 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk ${TGTDEV}
   +512M # 512 MB boot parttion
   n # new partition
   p # primary partition
-  2 # partion number 3
+  2 # partion number 2
     # default, start immediately after preceding partition
     # default, extend partition to end of disk
   a # make a partition bootable
@@ -51,23 +56,16 @@ EOF
 mkfs.ext4 /dev/sda2
 mkfs.fat -F32 /dev/sda1
 read -p "Press any key to resume ..."
-# Set up time
-timedatectl set-ntp true
 
-# Initate pacman keyring
-pacman-key --init
-pacman-key --populate archlinux
-pacman-key --refresh-keys
-
-# Mount the partitions
+# Mount the file systems
 mount /dev/sda2 /mnt
 mkdir -pv /mnt/boot/efi
 mount /dev/sda1 /mnt/boot/efi
 read -p "Press any key to resume ..."
+
 # Install Arch Linux
 echo "Starting install.."
-echo "Installing Arch Linux, KDE with Konsole and Dolphin and GRUB2 as bootloader" 
-pacstrap /mnt base base-devel zsh grml-zsh-config grub os-prober intel-ucode efibootmgr dosfstools freetype2 fuse2 mtools iw wpa_supplicant dialog xorg xorg-server xorg-xinit mesa xf86-video-intel plasma konsole dolphin
+pacstrap /mnt base linux linux-firmware
 
 # Generate fstab
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -76,15 +74,11 @@ genfstab -U /mnt >> /mnt/etc/fstab
 cp -rfv post-install.sh /mnt/root
 chmod a+x /mnt/root/post-install.sh
 
-# Chroot into new system
-echo "After chrooting into newly installed OS, please run the post-install.sh by executing ./post-install.sh"
-echo "Press any key to chroot..."
-read tmpvar
-arch-chroot /mnt /bin/bash
+# Chroot
+arch-chroot /mnt
 
 # Finish
-echo "If post-install.sh was run succesfully, you will now have a fully working bootable Arch Linux system installed."
+echo "Arch Linux system installed."
 echo "The only thing left is to reboot into the new system."
-echo "Press any key to reboot or Ctrl+C to cancel..."
-read tmpvar
-reboot
+#read tmpvar
+#reboot
