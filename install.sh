@@ -25,7 +25,7 @@ then
 fi
 
 # create the partitions 
-sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk -1
+sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk /dev/sda
   d #
     #
   d #
